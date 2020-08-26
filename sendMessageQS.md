@@ -56,7 +56,9 @@ namespace send_sms
 3. Tell the application to use Telnyx.net by adding: `using Telnyx;` before the `namespace`
 
 4. In order to use the Asynchronous methods, we need to modify our Main method to return a Task and make it async.
+
   4.1. `static void Main(string[] args)` should be `static async Task Main(string[] args)`.
+
   4.2. Add `using System.Threading.Tasks;` before the `namespace`.
 
 5. Modify the Main method to look something like the following code:
