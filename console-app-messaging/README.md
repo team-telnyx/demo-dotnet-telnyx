@@ -2,7 +2,7 @@
 
 # Telnyx C# Getting Started
 
-![Telnyx](logo-dark.png)
+![Telnyx](../logo-dark.png)
 
 Sample application demonstrating C# SDK Basics
 
@@ -25,10 +25,29 @@ You will need to set up:
 
 ## What you can do
 
-| Example                                        | Description                                                                                                         |
-|:-----------------------------------------------|:--------------------------------------------------------------------------------------------------------------------|
-| [Console App Messaging](console-app-messaging) | Quick example demonstrating how to send an SMS with Telnyx.net from the dotnet CLI: `dotnet new console`            |
-| [ASP.NET Messaging](asp.net-messaging)         | Example working with inbound MMS & SMS messages, downloading media from inbound MMS, and uploading media to AWS S3. |
+*
+
+## Usage
+
+The following environmental variables need to be set
+
+| Variable            | Description                                                                                                                                              |
+|:--------------------|:---------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `TELNYX_API_KEY`    | Your [Telnyx API Key](https://portal.telnyx.com/#/app/api-keys?utm_source=referral&utm_medium=github_referral&utm_campaign=cross-site-link)              |
+| `TELNYX_PUBLIC_KEY` | Your [Telnyx Public Key](https://portal.telnyx.com/#/app/account/public-key?utm_source=referral&utm_medium=github_referral&utm_campaign=cross-site-link) |
+| `TELNYX_APP_PORT`   | **Defaults to `8000`** The port the app will be served                                                                                                   |
+
+### .env file
+
+This app uses the excellent [dotenv.net](https://github.com/bolorundurowb/dotenv.net) package to manage environment variables.
+
+Make a copy of [`.env.sample`](./.env.sample) and save as `.env` and update the variables to match your creds.
+
+```
+TELNYX_API_KEY=
+TELNYX_PUBLIC_KEY=
+TENYX_APP_PORT=8000
+```
 
 ### Install
 
@@ -37,3 +56,12 @@ Run the following commands to get started
 ```
 $ git clone https://github.com/d-telnyx/demo-dotnet-telnyx.git
 ```
+
+### Run
+
+Open your IDE and run the application
+
+## API Docs
+
+
+## Next Steps

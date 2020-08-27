@@ -117,11 +117,6 @@ namespace send_sms
 ```bash
 $ dotnet restore
 $ TELNYX_API_KEY="YOUR_API_KEY" dotnet run
-```
-
-> output
-
-```bash
 $ TELNYX_API_KEY="YOUR_API_KEY" dotnet run
 Hello World!
 4031742c-d288-49f0-b4b9-809931dbd27c
