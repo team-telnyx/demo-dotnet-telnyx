@@ -94,7 +94,7 @@ namespace dotnet_starter.Controllers
     public async Task<string> MessageDLRCallback()
     {
       OutboundWebhook webhook = await WebhookHelpers.deserializeOutboundMessage(this.Request);
-      Console.WriteLine($"Received message with ID: {webhook.data.id}");
+      Console.WriteLine($"Received DLR for message with ID: {webhook.data.payload.id}");
       return "";
     }
   }
