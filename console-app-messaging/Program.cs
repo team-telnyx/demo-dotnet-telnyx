@@ -14,8 +14,8 @@ namespace demo_dotnet_telnyx
             MessagingSenderIdService service = new MessagingSenderIdService();
             NewMessagingSenderId options = new NewMessagingSenderId
             {
-                From = "+19198675309", // alphanumeric sender id
-                To = "+19198675310",
+                From = "+19842550905", // alphanumeric sender id
+                To = "+19197891146",
                 Text = "Hello, World!"
             };
             MessagingSenderId messageResponse = await service.CreateAsync(options);
