@@ -7,6 +7,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using dotenv.net;
+using Telnyx;
 
 namespace asp_net_IVR
 {
@@ -15,6 +16,9 @@ namespace asp_net_IVR
         public static void Main(string[] args)
         {
             DotEnv.Config();
+            string TELNYX_API_KEY = System.Environment.GetEnvironmentVariable("TELNYX_API_KEY");
+            TelnyxConfiguration.SetApiKey(TELNYX_API_KEY);
+
             CreateHostBuilder(args).Build().Run();
         }
 

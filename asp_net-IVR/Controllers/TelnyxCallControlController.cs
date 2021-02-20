@@ -20,81 +20,73 @@ namespace asp_net_IVR {
             CallControlWebhook myDeserializedClass = JsonSerializer.Deserialize<CallControlWebhook>(json);
             return myDeserializedClass;
         }
-    }
-
-    [ApiController]
-    [Route("call-control/[controller]")]
-    public class OutboundController : ControllerBase
-    {
-        // POST messaging/Inbound
-        [HttpPost]
-        [Consumes("application/json")]
-        public async Task<string> CallControlOutboundWebhook()
+        public static string Base64Encode(string plainText)
         {
-            CallControlWebhook webhook = await WebhookHelpers.deserializeWebhook(this.Request);
-            Console.WriteLine($"Received Webhook for call with call_control_id: {webhook.data.payload.call_control_id}");
-            return "";
+            var plainTextBytes = System.Text.Encoding.UTF8.GetBytes(plainText);
+            return System.Convert.ToBase64String(plainTextBytes);
+        }
+
+        public static string Base64Decode(string base64EncodedData)
+        {
+            if (base64EncodedData == null) {
+                return "";
+            }
+            var base64EncodedBytes = System.Convert.FromBase64String(base64EncodedData);
+            return System.Text.Encoding.UTF8.GetString(base64EncodedBytes);
         }
     }
-
     [ApiController]
     [Route("call-control/[controller]")]
     public class InboundController : ControllerBase
     {
 
-        private string TELNYX_API_KEY = System.Environment.GetEnvironmentVariable("TELNYX_API_KEY");
         [HttpPost]
         [Consumes("application/json")]
         public async Task<string> CallControlInboundWebhook()
         {
             CallControlWebhook webhook = await WebhookHelpers.deserializeWebhook(this.Request);
+            String callControlId = webhook.data.payload.call_control_id;
             CallControlService callControlService = new CallControlService();
-            callControlService.CallControlId = webhook.data.payload.call_control_id;
-            UriBuilder uriBuilder = new UriBuilder(Request.Scheme, Request.Host.ToString());
-            uriBuilder.Path = "call-control/outbound";
-            string outboundUrl = uriBuilder.ToString();
+            callControlService.CallControlId = callControlId;
+            String webhookClientState = WebhookHelpers.Base64Decode(webhook.data.payload.client_state);
+            if (webhookClientState == "outbound") {
+                Console.WriteLine($"Received outbound event: {webhook.data.event_type}");
+                return "";
+            }
             switch (webhook.data.event_type){
                 case "call.initiated":
+                    CallControlAnswerService answerService = new CallControlAnswerService();
                     CallControlAnswerOptions answerOptions = new CallControlAnswerOptions();
-                    callControlService.Answer(answerOptions);
+                    await answerService.CreateAsync(callControlId, answerOptions);
                     break;
                 case "call.answered":
+                    CallControlGatherUsingSpeakService gatherUsingSpeakService = new CallControlGatherUsingSpeakService();
                     CallControlGatherUsingSpeakOptions gatherUsingSpeakOptions = new CallControlGatherUsingSpeakOptions(){
-
+                        Language = "en-US",
+                        Voice = "female",
+                        Payload = "Please enter the 10 digit phone number you would like to dial",
+                        InvalidPayload = "Sorry, I didn't get that",
+                        MaximumDigits = 11,
+                        MinimumDigits = 10,
+                        ValidDigits = "0123456789"
                     };
+                    await gatherUsingSpeakService.CreateAsync(callControlId, gatherUsingSpeakOptions);
                     break;
                 case "call.gather.ended":
+                    String digits = webhook.data.payload.digits;
+                    String phoneNumber = $"+1{digits}";
+                    String outboundClientState = WebhookHelpers.Base64Encode("outbound");
+                    CallControlTransferService transferService = new CallControlTransferService();
+                    CallControlTransferOptions transferOptions = new CallControlTransferOptions(){
+                        To = phoneNumber,
+                        ClientState = outboundClientState
+                    };
+                    await transferService.CreateAsync(callControlId, transferOptions);
                     break;
-
+                default:
+                    Console.WriteLine($"Non-handled Event: {webhook.data.event_type}");
+                    break;
             }
-            // string to = webhook.data.payload.to[0].phone_number;
-            // string from = webhook.data.payload.from.phone_number;
-            // List<MediaItem> media = webhook.data.payload.media;
-            // List<string> files = new List<string>();
-            // List<string> mediaUrls = new List<string>();
-            // if (media != null)
-            // {
-            //     foreach (var item in media)
-            //     {
-            //         string path = await WebhookHelpers.downloadMediaAsync("./", item.hash_sha256, new Uri(item.url));
-            //         files.Add(path);
-            //         string mediaUrl = await WebhookHelpers.UploadFileAsync(path);
-            //         mediaUrls.Add(mediaUrl);
-            //     }
-            // }
-            // TelnyxConfiguration.SetApiKey(TELNYX_API_KEY);
-            // MessagingSenderIdService service = new MessagingSenderIdService();
-            // NewMessagingSenderId options = new NewMessagingSenderId
-            // {
-            //     From = to,
-            //     To = from,
-            //     Text = "Hello, World!",
-            //     WebhookUrl = dlrUri,
-            //     UseProfileWebhooks = false,
-            //     MediaUrls = mediaUrls
-            // };
-            // MessagingSenderId messageResponse = await service.CreateAsync(options);
-            // Console.WriteLine($"Sent message with ID: {messageResponse.Id}");
             return "";
         }
     }
