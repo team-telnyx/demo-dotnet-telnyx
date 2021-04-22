@@ -11,14 +11,11 @@ namespace Verify
         {
             // DotNetEnv load and paste some of our variables, check if fetching correctly
             DotNetEnv.Env.Load();
-            if (TELNYX_API_KEY == "VarNotFound")
+            if (TELNYX_API_KEY == "VarNotFound" || TELNYX_VERIFY_PROFILE_ID == "VarNotFound")
             {
                 Console.WriteLine("Variable not found, check your .env");
-            }
-            if (TELNYX_VERIFY_PROFILE_ID == "VarNotFound")
-            {
-                Console.WriteLine("Variable not found, check you .env file!");
-            }
+                Environment.Exit(-1);
+            }   
 
             // Configure Telnyx API Key
             Telnyx.TelnyxConfiguration.SetApiKey(TELNYX_API_KEY);
