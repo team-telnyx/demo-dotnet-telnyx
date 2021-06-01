@@ -16,6 +16,22 @@ namespace asp.net_sms_autoresponder
             string TELNYX_API_KEY = System.Environment.GetEnvironmentVariable("TELNYX_API_KEY");
             TelnyxConfiguration.SetApiKey(TELNYX_API_KEY);
 
+            static string GetPreparedReply(string msg)
+            {
+                var preparedReplies = new Dictionary<string, string>
+                {
+                    { "ice cream", "I prefer gelato" },
+                    { "pizza", "Chicago pizza is the best" }
+                };
+                var defaultReply = "Please send either the word 'pizza' or 'ice cream' for a different response";
+
+                bool preparedReplyFound = preparedReplies.TryGetValue(msg.ToLower().Trim(), out string preparedReply);
+                if (!preparedReplyFound) {
+                    preparedReply = defaultReply;
+                }
+                return preparedReply;
+            }
+
             app.UseRouting();
 
             app.UseEndpoints(endpoints =>
@@ -26,28 +42,18 @@ namespace asp.net_sms_autoresponder
                     string json = await reader.ReadToEndAsync();
                     JsonElement body = JsonSerializer.Deserialize<JsonElement>(json);
 
-                    body.TryGetProperty("data", out JsonElement data);
-                    data.TryGetProperty("event_type", out JsonElement eventType);
-                    data.TryGetProperty("payload", out JsonElement payload);
-                    payload.TryGetProperty("direction", out JsonElement direction);
-                    payload.TryGetProperty("text", out JsonElement message);
-                    payload.TryGetProperty("from", out JsonElement from);
-                    from.TryGetProperty("phone_number", out JsonElement replyToTN);
+                    var data = body.GetProperty("data");
+                    var eventType = data.GetProperty("event_type");
+                    var payload = data.GetProperty("payload");
+                    var direction = payload.GetProperty("direction");
+                    var message = payload.GetProperty("text");
+                    var from = payload.GetProperty("from");
+                    var replyToTN = from.GetProperty("phone_number");
 
                     if (eventType.ToString() == "message.received" && direction.ToString() == "inbound") {
                         Console.WriteLine($"Received message: {message}");
 
-                        var preparedReplies = new Dictionary<string, string>
-                        {
-                            { "ice cream", "I prefer gelato" },
-                            { "pizza", "Chicago pizza is the best" }
-                        };
-                        var defaultReply = "Please send either the word 'pizza' or 'ice cream' for a different response";
-
-                        bool preparedReplyFound = preparedReplies.TryGetValue(message.ToString().ToLower().Trim(), out string preparedReply);
-                        if (!preparedReplyFound) {
-                            preparedReply = defaultReply;
-                        }
+                        var preparedReply = GetPreparedReply(message.ToString());
 
                         MessagingSenderIdService service = new MessagingSenderIdService();
                         NewMessagingSenderId options = new NewMessagingSenderId
