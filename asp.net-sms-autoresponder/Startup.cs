@@ -60,7 +60,7 @@ namespace asp.net_sms_autoresponder
                         {
                             From = System.Environment.GetEnvironmentVariable("TELNYX_SMS_NUMBER"),
                             To = replyToTN.ToString(),
-                            Text = message.ToString()
+                            Text = preparedReply.ToString()
                         };
 
                         try
