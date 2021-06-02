@@ -46,19 +46,28 @@ namespace asp.net_sms_autoresponder
                     var eventType = data.GetProperty("event_type");
                     var payload = data.GetProperty("payload");
                     var direction = payload.GetProperty("direction");
-                    var message = payload.GetProperty("text");
-                    var from = payload.GetProperty("from");
-                    var replyToTN = from.GetProperty("phone_number");
 
                     if (eventType.ToString() == "message.received" && direction.ToString() == "inbound") {
+                        var message = payload.GetProperty("text");
                         Console.WriteLine($"Received message: {message}");
+                        
+                        var from = payload.GetProperty("from");
+                        var replyToTN = from.GetProperty("phone_number");
+
+                        var to = payload.GetProperty("to");
+                        String telnyxNumber = "";
+                        foreach (var item in to.EnumerateArray())
+                        {
+                            telnyxNumber = item.GetProperty("phone_number").ToString();
+                            break;
+                        }
 
                         var preparedReply = GetPreparedReply(message.ToString());
 
                         MessagingSenderIdService service = new MessagingSenderIdService();
                         NewMessagingSenderId options = new NewMessagingSenderId
                         {
-                            From = System.Environment.GetEnvironmentVariable("TELNYX_SMS_NUMBER"),
+                            From = telnyxNumber,
                             To = replyToTN.ToString(),
                             Text = preparedReply
                         };
