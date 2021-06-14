@@ -26,7 +26,7 @@ namespace asp_net_IVR
             Host.CreateDefaultBuilder(args)
                 .ConfigureWebHostDefaults(webBuilder =>
                 {
-                    string Port = Environment.GetEnvironmentVariable("TELNYX_APP_PORT");
+                    string Port = Environment.GetEnvironmentVariable("PORT");
                     webBuilder.UseStartup<Startup>();
                     string[] urls = new string[] { $"http://localhost:{Port}", "https://localhost:8001" };
                     webBuilder.UseUrls(urls);

@@ -35,6 +35,20 @@ namespace asp_net_IVR {
             return System.Text.Encoding.UTF8.GetString(base64EncodedBytes);
         }
     }
+
+    [ApiController]
+    [Route("call-control/[controller]")]
+    public class OutboundController : ControllerBase
+    {
+        [HttpPost]
+        [Consumes("application/json")]
+        public string CallControlOutboundWebhook(CallControlWebhook webhook)
+        {
+            Console.WriteLine($"Received outbound event: {webhook.data.event_type}");
+            return "";
+        }
+    }
+
     [ApiController]
     [Route("call-control/[controller]")]
     public class InboundController : ControllerBase
@@ -42,50 +56,64 @@ namespace asp_net_IVR {
 
         [HttpPost]
         [Consumes("application/json")]
-        public async Task<string> CallControlInboundWebhook()
+        public async Task<string> CallControlInboundWebhook(CallControlWebhook webhook)
         {
-            CallControlWebhook webhook = await WebhookHelpers.deserializeWebhook(this.Request);
+            // CallControlWebhook webhook = await WebhookHelpers.deserializeWebhook(this.Request);
             String callControlId = webhook.data.payload.call_control_id;
             CallControlService callControlService = new CallControlService();
             callControlService.CallControlId = callControlId;
+            Guid commandId = Guid.NewGuid();
             String webhookClientState = WebhookHelpers.Base64Decode(webhook.data.payload.client_state);
-            if (webhookClientState == "outbound") {
-                Console.WriteLine($"Received outbound event: {webhook.data.event_type}");
-                return "";
+            try {
+                switch (webhook.data.event_type){
+                    case "call.initiated":
+                        CallControlAnswerOptions answerOptions = new CallControlAnswerOptions() {
+                            CommandId = commandId
+                        };
+                        CallAnswerResponse answerResponse = await callControlService.AnswerAsync(answerOptions);
+                        Console.WriteLine($"Answer Response: {answerResponse.TelnyxResponse.ResponseJson.ToString()}");
+                        return "answer-sent";
+                    case "call.answered":
+                        // TelnyxConfiguration.SetApiBase("http://my-req-bin.herokuapp.com/147rpjv1");
+                        CallControlGatherUsingSpeakOptions gatherUsingSpeakOptions = new CallControlGatherUsingSpeakOptions(){
+                            Language = "en-US",
+                            Voice = "female",
+                            Payload = "Please enter the 10 digit phone number you would like to dial, followed by the pound sign",
+                            InvalidPayload = "Sorry, I didn't get that",
+                            MaximumDigits = 11,
+                            MinimumDigits = 10,
+                            ValidDigits = "0123456789",
+                            CommandId = commandId
+                        };
+                        CallGatherUsingSpeakResponse gatherResponse = await callControlService.GatherUsingSpeakAsync(gatherUsingSpeakOptions);
+                        Console.WriteLine($"Gather Response: {gatherResponse.TelnyxResponse.ResponseJson.ToString()}");
+                        return "gather-sent";
+                    case "call.gather.ended":
+                        String reason = webhook.data.payload.status;
+                        if (reason == "call_hangup") {
+                            Console.WriteLine($"Call: {callControlId} hung up during gather");
+                        }
+                        String digits = webhook.data.payload.digits;
+                        String phoneNumber = $"+1{digits}";
+                        UriBuilder uriBuilder = new UriBuilder(Request.Scheme, Request.Host.ToString());
+                        uriBuilder.Path = "call-control/outbound";
+                        string transferUri = uriBuilder.ToString();
+                        CallControlTransferOptions transferOptions = new CallControlTransferOptions(){
+                            To = phoneNumber,
+                            WebhookUrl = transferUri,
+                            CommandId = commandId
+                        };
+                        CallTransferResponse transferResponse = await callControlService.TransferAsync(transferOptions);
+                        Console.WriteLine($"Transfer Response: {transferResponse.TelnyxResponse.ResponseJson.ToString()}");
+                        return "transfer-sent";
+                    default:
+                        Console.WriteLine($"Non-handled Event: {webhook.data.event_type}");
+                        return "default-non-event";
+                    }
             }
-            switch (webhook.data.event_type){
-                case "call.initiated":
-                    CallControlAnswerService answerService = new CallControlAnswerService();
-                    CallControlAnswerOptions answerOptions = new CallControlAnswerOptions();
-                    await answerService.CreateAsync(callControlId, answerOptions);
-                    break;
-                case "call.answered":
-                    CallControlGatherUsingSpeakService gatherUsingSpeakService = new CallControlGatherUsingSpeakService();
-                    CallControlGatherUsingSpeakOptions gatherUsingSpeakOptions = new CallControlGatherUsingSpeakOptions(){
-                        Language = "en-US",
-                        Voice = "female",
-                        Payload = "Please enter the 10 digit phone number you would like to dial",
-                        InvalidPayload = "Sorry, I didn't get that",
-                        MaximumDigits = 11,
-                        MinimumDigits = 10,
-                        ValidDigits = "0123456789"
-                    };
-                    await gatherUsingSpeakService.CreateAsync(callControlId, gatherUsingSpeakOptions);
-                    break;
-                case "call.gather.ended":
-                    String digits = webhook.data.payload.digits;
-                    String phoneNumber = $"+1{digits}";
-                    String outboundClientState = WebhookHelpers.Base64Encode("outbound");
-                    CallControlTransferService transferService = new CallControlTransferService();
-                    CallControlTransferOptions transferOptions = new CallControlTransferOptions(){
-                        To = phoneNumber,
-                        ClientState = outboundClientState
-                    };
-                    await transferService.CreateAsync(callControlId, transferOptions);
-                    break;
-                default:
-                    Console.WriteLine($"Non-handled Event: {webhook.data.event_type}");
-                    break;
+            catch (Exception e)
+            {
+                Console.Write(e);
             }
             return "";
         }
