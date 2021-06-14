@@ -20,7 +20,7 @@ You will need to set up:
 * [Telnyx Phone Number](https://portal.telnyx.com/#/app/numbers/my-numbers?utm_source=referral&utm_medium=github_referral&utm_campaign=cross-site-link) enabled with:
   * [Telnyx Messaging Profile](https://portal.telnyx.com/#/app/messaging)
 * Ability to receive webhooks (with something like [ngrok](https://developers.telnyx.com/docs/v2/development/ngrok?utm_source=referral&utm_medium=github_referral&utm_campaign=cross-site-link))
-* [DotNet Core](https://developers.telnyx.com/docs/v2/development/dev-env-setup?lang=java&utm_source=referral&utm_medium=github_referral&utm_campaign=cross-site-link) installed
+* * [DotNet Core](https://developers.telnyx.com/docs/v2/development/dev-env-setup?lang=net) installed
 * AWS Account setup with proper profiles and groups with IAM for S3. See the [Quickstart](https://docs.aws.amazon.com/sdk-for-net/latest/developer-guide/quick-start-s3-1-cross.html) for more information.
 * Previously created S3 bucket with public permissions available.
 

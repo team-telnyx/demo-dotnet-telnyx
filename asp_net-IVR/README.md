@@ -21,7 +21,7 @@ You will need to set up:
   * [Telnyx Call Control Application](https://portal.telnyx.com/#/app/call-control/applications?utm_source=referral&utm_medium=github_referral&utm_campaign=cross-site-link)
   * [Telnyx Outbound Voice Profile](https://portal.telnyx.com/#/app/outbound-profiles?utm_source=referral&utm_medium=github_referral&utm_campaign=cross-site-link)
 * Ability to receive webhooks (with something like [ngrok](https://developers.telnyx.com/docs/v2/development/ngrok?utm_source=referral&utm_medium=github_referral&utm_campaign=cross-site-link))
-* [DotNet Core](https://developers.telnyx.com/docs/v2/development/dev-env-setup?lang=java&utm_source=referral&utm_medium=github_referral&utm_campaign=cross-site-link) installed
+* [DotNet Core](https://developers.telnyx.com/docs/v2/development/dev-env-setup?lang=net) installed
 
 ## What you can do
 
@@ -62,6 +62,7 @@ Run the following commands to get started
 
 ```
 $ git clone https://github.com/team-telnyx/demo-dotnet-telnyx.git
+$ cd asp_net-IVR
 ```
 
 ### Ngrok
@@ -89,15 +90,25 @@ Connections                   ttl     opn     rt1     rt5     p50     p90
                               0       0       0.00    0.00    0.00    0.00
 ```
 
-At this point you can point your application to generated ngrok URL + path  (Example: `http://{your-url}.ngrok.io/call-control/inbound`).
+At this point you can point your [call-control application](https://portal.telnyx.com/#/app/call-control/applications) to generated ngrok URL + path  (Example: `http://{your-url}.ngrok.io/call-control/inbound`).
+
+### Assign Phone Number to the Application
+
+Update one of your [phone numbers](https://portal.telnyx.com/#/app/numbers/my-numbers) to point to the [call-control application](https://portal.telnyx.com/#/app/call-control/applications) you've updated with your ngrok URL.
 
 ### Run
 
-Open your IDE and run the application and call the phone number associated with your call control application.
+Open your IDE and run the application within the IDE or using the dotnet CLI
 
-You'll be prompted to enter a 10 digit phone number then the app will transfer to the number entered.
+#### CLI Commands
 
-## API Docs
+```bash
+$ dotnet restore
+$ dotnet run
+```
 
+#### Call your phone number
 
-## Next Steps
+1. Call the phone number associated you with your call control application.
+2. You'll be prompted to enter a 10 digit phone number then the app will transfer you to the phone number you entered.
+2.1 Try `9198675309` if you need a demo number
