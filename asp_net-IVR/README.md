@@ -1,6 +1,6 @@
 <div align="center">
 
-# Telnyx.net Call Control Getting Starter
+# Telnyx.net Call Control Getting Started
 
 ![Telnyx](../logo-dark.png)
 
