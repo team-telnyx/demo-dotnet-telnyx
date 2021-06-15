@@ -58,7 +58,6 @@ namespace asp_net_IVR {
         [Consumes("application/json")]
         public async Task<string> CallControlInboundWebhook(CallControlWebhook webhook)
         {
-            // CallControlWebhook webhook = await WebhookHelpers.deserializeWebhook(this.Request);
             String callControlId = webhook.data.payload.call_control_id;
             CallControlService callControlService = new CallControlService();
             callControlService.CallControlId = callControlId;
@@ -74,7 +73,6 @@ namespace asp_net_IVR {
                         Console.WriteLine($"Answer Response: {answerResponse.TelnyxResponse.ResponseJson.ToString()}");
                         return "answer-sent";
                     case "call.answered":
-                        // TelnyxConfiguration.SetApiBase("http://my-req-bin.herokuapp.com/147rpjv1");
                         CallControlGatherUsingSpeakOptions gatherUsingSpeakOptions = new CallControlGatherUsingSpeakOptions(){
                             Language = "en-US",
                             Voice = "female",
